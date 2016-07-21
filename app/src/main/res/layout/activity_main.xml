@@ -7,12 +7,14 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:focusable="false"
     tools:context="com.example.android.sunshine.MainActivity">
 
     <fragment
-        android:name="com.example.android.sunshine.FragmentClass"
+        android:name="com.example.android.sunshine.ForecastFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/fragment_in_main"
+        android:focusable="false"
         />
 </RelativeLayout>

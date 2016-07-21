@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
+    <item
+        android:id="@+id/action_refresh"
+        android:title="@string/action_refresh"
+        android:checkable="false"
+        app:showAsAction="never"
+        />
+    <item
+        android:id="@+id/action_setting"
+        android:title="@string/title_activity_setting"
+        android:checkable="false"
+        app:showAsAction="never"
+        />
+</menu>
