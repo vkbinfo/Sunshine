@@ -9,4 +9,6 @@
     <string name="temperature_key">listPref</string>
     <string name="unit_metric">metric</string>
     <string name="unit_imperial">imperial</string>
+
+    <string name="action_share">Share</string>
 </resources>
