@@ -18,11 +18,8 @@ import java.text.SimpleDateFormat;
  */
 public class WeatherDataParser extends Activity {
 
-       Context context;
+       String unit;
 
-    public WeatherDataParser(Context context) {
-        this.context = context;
-    }
 
     /* The date/time conversion code is going to be moved outside the asynctask later,
      * so for convenience we're breaking it out into its own method now.
@@ -41,10 +38,12 @@ public class WeatherDataParser extends Activity {
     private String formatHighLows(double high, double low) {
         // For presentation, assume the user doesn't care about tenths of a degree.
 
+        Log.v("bbbb",unit);
 
+        if(unit.equals("imperial")){
             high=(high*1.8)+32;
             low=(low*1.8)+32;
-        
+        }
         long roundedHigh = Math.round(high);
         long roundedLow = Math.round(low);
 
@@ -59,7 +58,7 @@ public class WeatherDataParser extends Activity {
      * Fortunately parsing is easy:  constructor takes the JSON string and converts it
      * into an Object hierarchy for us.
      */
-    public String[] getWeatherDataFromJson(String forecastJsonStr, int numDays)
+    public String[] getWeatherDataFromJson(String forecastJsonStr, int numDays,String unitWhichIsPassed)
             throws JSONException {
 
         // These are the names of the JSON objects that need to be extracted.
@@ -69,6 +68,7 @@ public class WeatherDataParser extends Activity {
         final String OWM_MAX = "max";
         final String OWM_MIN = "min";
         final String OWM_DESCRIPTION = "main";
+        unit=unitWhichIsPassed;
 
         JSONObject forecastJson = new JSONObject(forecastJsonStr);
         JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);

@@ -5,6 +5,8 @@ import android.app.ListFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -34,6 +36,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by vikashkumarbijarnia on 17/07/16.
@@ -43,13 +46,15 @@ public class ForecastFragment extends Fragment{
     SimpleAdapter mForecastAdapter;
     ArrayList<String> empetyArraylist;
     ListView list;
-    Context context;
+    String zip;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        context=getActivity();
-        dataParser=new WeatherDataParser(context);
+        SharedPreferences prefs= PreferenceManager.getDefaultSharedPreferences(getActivity());
+        Log.v("bjbbb",prefs.toString());
+        String unit =prefs.getString(getString(R.string.temperature_key),getString(R.string.default_temperature_unit));
+        dataParser=new WeatherDataParser();
     }
 
 
@@ -63,12 +68,32 @@ public class ForecastFragment extends Fragment{
     public boolean onOptionsItemSelected(MenuItem item) {
         int id=item.getItemId();
         if(id==R.id.action_refresh){
-            FetchWeatherTask wetherInfo=new FetchWeatherTask();
-            wetherInfo.execute("94043");
+            update();
         }
         if(id==R.id.action_setting){
             Intent intent =new Intent(getActivity(),SettingsActivity.class);
             startActivity(intent);
+        }
+        if(id==R.id.map_view_id){
+            final Geocoder geocoder = new Geocoder(getActivity());
+            try {
+                List<Address> addresses = geocoder.getFromLocationName(zip, 1);
+                if (addresses != null && !addresses.isEmpty()) {
+                    Address address = addresses.get(0);
+                    // Use the address as needed
+                    String uri = String.format(Locale.ENGLISH, "geo:%f,%f", address.getLatitude(), address.getLongitude());
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+                    getActivity().startActivity(intent);
+
+                } else {
+                    // Display appropriate message when Geocoder services are not available
+                    Toast.makeText(getActivity(), "Unable to geocode zipcode", Toast.LENGTH_LONG).show();
+                }
+            } catch (IOException e) {
+                // handle exception
+                Toast.makeText(getActivity(),"There is some problem",Toast.LENGTH_LONG).show();
+            }
+
         }
 
 
@@ -106,8 +131,9 @@ public class ForecastFragment extends Fragment{
     public void update(){
         FetchWeatherTask wetherInfo=new FetchWeatherTask();
         SharedPreferences prefs= PreferenceManager.getDefaultSharedPreferences(getActivity());
-         String location =prefs.getString(getString(R.string.location_key),getString(R.string.location_default_value));
-        wetherInfo.execute(location);
+         zip =prefs.getString(getString(R.string.location_key),getString(R.string.location_default_value));
+        String unit =prefs.getString(getString(R.string.temperature_key),getString(R.string.default_temperature_unit));
+        wetherInfo.execute(new String[]{zip,unit});
     }
 
     @Override
@@ -121,6 +147,7 @@ public class ForecastFragment extends Fragment{
         String unit = "metric";
         String appid = "aa2b8133413c5ba1591f0676bfe36db1";
         int days = 7;
+        String unitTopass;
 
 
         @Override
@@ -131,6 +158,7 @@ public class ForecastFragment extends Fragment{
             final String UNIT_PARAM = "units";
             final String DAYS_PARAM = "cnt";
             final String APP_ID = "APPID";
+            unitTopass=strings[1];
 
             Uri buildUri = Uri.parse(BASE_URL).buildUpon().appendQueryParameter(QUERY_PARAM, strings[0])
                     .appendQueryParameter(FORMAT_PARAM, format)
@@ -138,13 +166,14 @@ public class ForecastFragment extends Fragment{
                     .appendQueryParameter(DAYS_PARAM, Integer.toString(days))
                     .appendQueryParameter(APP_ID, appid)
                     .build();
-            return getWeatherInfo(buildUri.toString());
+            return getWeatherInfo(buildUri.toString(),unitTopass);
         }
 
         @Override
         protected void onPostExecute(String[] strings) {
 
             if (strings != null) {
+                mForecastAdapter.clear();
                 mForecastAdapter.addAll(new ArrayList<String>(Arrays.asList(strings)));
                 mForecastAdapter.notifyDataSetChanged();
             }
@@ -152,7 +181,7 @@ public class ForecastFragment extends Fragment{
 
         }
     }
-    private String[] getWeatherInfo(String urls) {
+    private String[] getWeatherInfo(String urls,String UnitTopass) {
         // These two need to be declared outside the try/catch
 // so that they can be closed in the finally block.
         HttpURLConnection urlConnection = null;
@@ -194,7 +223,7 @@ public class ForecastFragment extends Fragment{
                 forecastJsonStr = null;
             }
             forecastJsonStr = buffer.toString();
-            return dataParser.getWeatherDataFromJson(forecastJsonStr, 7);
+            return dataParser.getWeatherDataFromJson(forecastJsonStr, 7,UnitTopass);
         } catch (IOException e) {
             Log.e("PlaceholderFragment", "Error ", e);
             // If the code didn't successfully get the weather data, there's no point in attempting

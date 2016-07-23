@@ -14,4 +14,8 @@
         android:checkable="false"
         app:showAsAction="never"
         />
+    <item
+        android:id="@+id/map_view_id"
+        android:title="MapView"
+        />
 </menu>
